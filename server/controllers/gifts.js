@@ -1,116 +1,54 @@
-import { pool } from "../config/database.js";
 import "../config/dotenv.js";
+import Gift from "../models/gift.js"; // Importing the Gifts model
 
 class GiftsController {
   static getGifts = async (req, res) => {
     try {
-      const results = await pool.query("SELECT * FROM gifts ORDER BY id ASC");
-      res.status(200).json(results.rows);
+      const gifts = await Gift.getAllGifts(); // Using Gifts model to get all gifts
+      res.status(200).json(gifts);
     } catch (error) {
       res.status(409).json({ error: error.message });
     }
   };
 
   static getGiftById = async (req, res) => {
-    const selectQuery = `
-      SELECT name, pricePoint, audience, image, description, submittedBy, submittedOn
-      FROM gifts
-      WHERE id=$1
-    `;
-
     try {
       const giftId = parseInt(req.params.giftId);
-
-      const results = await pool.query(selectQuery, [giftId]);
-      res.status(200).json(results.rows[0]);
+      const gift = await Gift.getGiftById(giftId); // Using Gifts model to get a gift by ID
+      res.status(200).json(gift);
     } catch (error) {
       res.status(409).json({ error: error.message });
     }
   };
 
   static createGift = async (req, res) => {
-    const {
-      name,
-      pricepoint,
-      audience,
-      image,
-      description,
-      submittedby,
-      submittedon
-    } = req.body;
-
-    const createQuery = `
-      INSERT INTO gifts (name, pricepoint, audience, image, description, submittedby, submittedon)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *;
-    `;
+    const giftData = req.body;
 
     try {
-      const results = await pool.query(createQuery, [
-        name,
-        pricepoint,
-        audience,
-        image,
-        description,
-        submittedby,
-        submittedon
-      ]);
-
-      res.status(201).json(results.rows[0]);
+      const createdGift = await Gift.createGift(giftData); // Using Gifts model to create a gift
+      res.status(201).json(createdGift);
     } catch (error) {
       res.status(409).json({ error: error.message });
     }
   };
 
   static updateGift = async (req, res) => {
-    const {
-      name,
-      pricepoint,
-      audience,
-      image,
-      description,
-      submittedby,
-      submittedon
-    } = req.body;
-
-    const updateQuery = `
-      UPDATE gifts
-      SET name = $1, pricepoint = $2, audience = $3, image = $4, description = $5, submittedby = $6, submittedon= $7
-      WHERE id = $8;
-    `;
+    const giftData = req.body;
 
     try {
-      // converting string to integer could fail
       const giftId = parseInt(req.params.giftId);
-
-      const results = await pool.query(updateQuery, [
-        name,
-        pricepoint,
-        audience,
-        image,
-        description,
-        submittedby,
-        submittedon,
-        giftId
-      ]);
-
-      res.status(200).json(results.rows[0]);
+      const updatedGift = await Gift.updateGift(giftId, giftData); // Using Gifts model to update a gift
+      res.status(200).json(updatedGift);
     } catch (error) {
       res.status(409).json({ error: error.message });
     }
   };
 
   static deleteGift = async (req, res) => {
-    const deleteQuery = `
-      DELETE FROM gifts
-      WHERE id = $1;
-    `;
-
     try {
       const giftId = parseInt(req.params.giftId);
-
-      const results = await pool.query(deleteQuery, [giftId]);
-      res.status(200).json(results.rows[0]);
+      const deletedGift = await Gift.deleteGift(giftId); // Using Gifts model to delete a gift
+      res.status(200).json(deletedGift);
     } catch (error) {
       res.status(409).json({ error: error.message });
     }
